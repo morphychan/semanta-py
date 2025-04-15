@@ -5,11 +5,11 @@ Semanta-py CLI Entrypoint
 This script serves as the main entry point using the Semanta-py framework.
 
 Usage:
-    python3 scripts/analyze_project.py <project_path> [options]
+    python3 -m scripts.analyze_project <project_path> [options]
 """
 
 import argparse
-
+from semanta import project_loader
 class SemantaCLI:
     """
     Command-line interface controller for Semanta-py.
@@ -62,10 +62,7 @@ class SemantaCLI:
         print(f"[INFO] Options: dump_ast={self.args.dump_ast}, show_nodes={self.args.show_nodes}, limit={self.args.limit}")
 
         print("[STEP] Loading source files...")
-        # Placeholder: Replace with project_loader.load_sources()
-        source_files = {
-            "mock_file.py": "def foo():\n    return 1"
-        }
+        source_files = project_loader.load_sources(self.args.project_path)
 
         print("[STEP] Parsing files...")
         for i, (filename, source) in enumerate(source_files.items()):
