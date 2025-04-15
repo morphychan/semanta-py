@@ -10,6 +10,7 @@ Usage:
 
 import argparse
 from semanta import project_loader
+from semanta.ast_parser import AstParser
 class SemantaCLI:
     """
     Command-line interface controller for Semanta-py.
@@ -65,18 +66,19 @@ class SemantaCLI:
         source_files = project_loader.load_sources(self.args.project_path)
 
         print("[STEP] Parsing files...")
+        parser = AstParser()
         for i, (filename, source) in enumerate(source_files.items()):
             if self.args.limit is not None and i >= self.args.limit:
                 break
 
             print(f" - Analyzing: {filename}")
 
-            # Placeholder: Replace with ast_parser.parse(source)
+            tree = parser.parse(source)
             if self.args.dump_ast:
-                print("   [AST] <ast.dump(...) output here>")
+                print("AST:", parser.dump(tree))
 
             if self.args.show_nodes:
-                print("   [Nodes] <top-level AST node types here>")
+                print("Top-level nodes:", parser.get_top_level_nodes(tree))
 
         print("[DONE] Analysis complete.")
 
