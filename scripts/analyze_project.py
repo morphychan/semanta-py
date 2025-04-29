@@ -11,6 +11,8 @@ Usage:
 import argparse
 from semanta import project_loader
 from semanta.ast_parser import AstParser
+from semanta.symbol_table import SymbolExtractor
+
 class SemantaCLI:
     """
     Command-line interface controller for Semanta-py.
@@ -22,6 +24,8 @@ class SemantaCLI:
         Initialize the CLI tool by parsing arguments and preparing state.
         """
         self.args = self._parse_args()
+        self.parser = AstParser()
+        self.extractor = SymbolExtractor()
 
     def _parse_args(self):
         """
@@ -48,6 +52,11 @@ class SemantaCLI:
             help="Display top-level AST node types for each file"
         )
         parser.add_argument(
+            "--show-symbols",
+            action="store_true",
+            help="Display extracted symbols (functions, classes) for each file"
+        )        
+        parser.add_argument(
             "--limit",
             type=int,
             default=None,
@@ -66,19 +75,27 @@ class SemantaCLI:
         source_files = project_loader.load_sources(self.args.project_path)
 
         print("[STEP] Parsing files...")
-        parser = AstParser()
         for i, (filename, source) in enumerate(source_files.items()):
             if self.args.limit is not None and i >= self.args.limit:
                 break
 
             print(f" - Analyzing: {filename}")
 
-            tree = parser.parse(source)
+            tree = self.parser.parse(source)
             if self.args.dump_ast:
-                print("AST:", parser.dump(tree))
+                print("AST:", self.parser.dump(tree))
 
             if self.args.show_nodes:
-                print("Top-level nodes:", parser.get_top_level_nodes(tree))
+                print("Top-level nodes:", self.parser.get_top_level_nodes(tree))
+
+            if self.args.show_symbols:
+                symbols = self.extractor.extract_symbols(tree)
+                if not symbols:
+                    print("[Symbols] (None found)")
+                else:
+                    print("[Symbols]")
+                    for sym in symbols:
+                        print(f"  - {sym['type']} '{sym['name']}' (line {sym['lineno']})")
 
         print("[DONE] Analysis complete.")
 
