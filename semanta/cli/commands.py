@@ -63,7 +63,7 @@ class AnalyzeCommand:
                         print("   [Symbols] (None found)")
                     else:
                         print("   [Symbols]")
-                        self._pretty_print_symbols(symbols)
+                        self.symbol_extractor.pretty_print_symbols(symbols, indent="     ")
                     
                 processed_count += 1
                 
@@ -73,43 +73,6 @@ class AnalyzeCommand:
                 print(f"   [ERROR] Failed to process {filename}: {e}")
 
         print(f"[DONE] Analysis complete. Processed {processed_count} files.")
-
-    def _pretty_print_symbols(self, symbols):
-        """
-        Nicely print the extracted symbols in a structured way.
-
-        Args:
-            symbols (list[dict]): The extracted symbol information.
-        """
-        for sym in symbols:
-            sym_type = sym.get("type", "Unknown")
-            
-            if sym_type == "FunctionDef":
-                print(f"     - Function: {sym['name']} (line {sym['lineno']})")
-                if sym.get("parameters"):
-                    print(f"       Parameters: {', '.join(sym['parameters'])}")
-                if sym.get("local_vars"):
-                    print(f"       Local Variables: {', '.join(sym['local_vars'])}")
-            
-            elif sym_type == "ClassDef":
-                print(f"     - Class: {sym['name']} (line {sym['lineno']})")
-                if sym.get("methods"):
-                    print(f"       Methods:")
-                    for method in sym["methods"]:
-                        print(f"         - {method['name']} (line {method['lineno']})")
-                        if method.get("parameters"):
-                            print(f"           Parameters: {', '.join(method['parameters'])}")
-                        if method.get("local_vars"):
-                            print(f"           Local Variables: {', '.join(method['local_vars'])}")
-            
-            elif sym_type == "Import":
-                print(f"     - Import: {', '.join(sym['modules'])}")
-            
-            elif sym_type == "ImportFrom":
-                print(f"     - From {sym['module']} import {', '.join(sym['imports'])}")
-            
-            else:
-                print(f"     - Unknown symbol: {sym}")
 
 class HelpCommand:
     """Command handler for the 'help' subcommand."""

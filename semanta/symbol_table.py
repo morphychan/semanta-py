@@ -150,3 +150,51 @@ class SymbolExtractor:
             "module": node.module,
             "imports": imports
         }
+
+    def pretty_print_symbols(self, symbols: List[Dict[str, object]], indent: str = "  ") -> None:
+        """
+        Pretty print the extracted symbols in a structured way.
+
+        Args:
+            symbols (List[Dict[str, object]]): The extracted symbol information.
+            indent (str): The indentation string to use for formatting.
+        """
+        for sym in symbols:
+            sym_type = sym.get("type", "Unknown")
+            
+            if sym_type == "FunctionDef":
+                print(f"{indent}- Function: {sym['name']} (line {sym['lineno']})")
+                parameters = sym.get("parameters")
+                if parameters and isinstance(parameters, list):
+                    print(f"{indent}  Parameters: {', '.join(parameters)}")
+                local_vars = sym.get("local_vars")
+                if local_vars and isinstance(local_vars, list):
+                    print(f"{indent}  Local Variables: {', '.join(local_vars)}")
+            
+            elif sym_type == "ClassDef":
+                print(f"{indent}- Class: {sym['name']} (line {sym['lineno']})")
+                methods = sym.get("methods")
+                if methods and isinstance(methods, list):
+                    print(f"{indent}  Methods:")
+                    for method in methods:
+                        if isinstance(method, dict):
+                            print(f"{indent}    - {method['name']} (line {method['lineno']})")
+                            method_params = method.get("parameters")
+                            if method_params and isinstance(method_params, list):
+                                print(f"{indent}      Parameters: {', '.join(method_params)}")
+                            method_vars = method.get("local_vars")
+                            if method_vars and isinstance(method_vars, list):
+                                print(f"{indent}      Local Variables: {', '.join(method_vars)}")
+            
+            elif sym_type == "Import":
+                modules = sym.get("modules")
+                if modules and isinstance(modules, list):
+                    print(f"{indent}- Import: {', '.join(modules)}")
+            
+            elif sym_type == "ImportFrom":
+                imports = sym.get("imports")
+                if imports and isinstance(imports, list):
+                    print(f"{indent}- From {sym['module']} import {', '.join(imports)}")
+            
+            else:
+                print(f"{indent}- Unknown symbol: {sym}")
