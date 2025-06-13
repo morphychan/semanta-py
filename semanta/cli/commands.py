@@ -7,14 +7,14 @@ Each command is implemented as a separate class for better organization.
 
 from .. import project_loader
 from ..ast_parser import AstParser
-
+from ..symbol_table import SymbolExtractor
 
 class AnalyzeCommand:
     """Command handler for the 'analyze' subcommand."""
     
     def __init__(self):
         """Initialize the analyze command."""
-        pass
+        self.symbol_extractor = SymbolExtractor()
     
     def execute(self, args):
         """
@@ -24,7 +24,7 @@ class AnalyzeCommand:
             args: Parsed command line arguments
         """
         print(f"[INFO] Analyzing project at: {args.project_path}")
-        print(f"[INFO] Options: dump_ast={args.dump_ast}, show_nodes={args.show_nodes}, limit={args.limit}")
+        print(f"[INFO] Options: dump_ast={args.dump_ast}, show_nodes={args.show_nodes}, show_symbols={args.show_symbols}, limit={args.limit}")
 
         print("[STEP] Loading source files...")
         source_files = project_loader.load_sources(args.project_path)
@@ -56,6 +56,14 @@ class AnalyzeCommand:
                 if args.show_nodes:
                     nodes = parser.get_top_level_nodes(tree)
                     print(f"   Top-level nodes: {nodes}")
+
+                if args.show_symbols:
+                    symbols = self.symbol_extractor.extract_symbols(tree)
+                    if not symbols:
+                        print("   [Symbols] (None found)")
+                    else:
+                        print("   [Symbols]")
+                        self._pretty_print_symbols(symbols)
                     
                 processed_count += 1
                 
@@ -66,6 +74,42 @@ class AnalyzeCommand:
 
         print(f"[DONE] Analysis complete. Processed {processed_count} files.")
 
+    def _pretty_print_symbols(self, symbols):
+        """
+        Nicely print the extracted symbols in a structured way.
+
+        Args:
+            symbols (list[dict]): The extracted symbol information.
+        """
+        for sym in symbols:
+            sym_type = sym.get("type", "Unknown")
+            
+            if sym_type == "FunctionDef":
+                print(f"     - Function: {sym['name']} (line {sym['lineno']})")
+                if sym.get("parameters"):
+                    print(f"       Parameters: {', '.join(sym['parameters'])}")
+                if sym.get("local_vars"):
+                    print(f"       Local Variables: {', '.join(sym['local_vars'])}")
+            
+            elif sym_type == "ClassDef":
+                print(f"     - Class: {sym['name']} (line {sym['lineno']})")
+                if sym.get("methods"):
+                    print(f"       Methods:")
+                    for method in sym["methods"]:
+                        print(f"         - {method['name']} (line {method['lineno']})")
+                        if method.get("parameters"):
+                            print(f"           Parameters: {', '.join(method['parameters'])}")
+                        if method.get("local_vars"):
+                            print(f"           Local Variables: {', '.join(method['local_vars'])}")
+            
+            elif sym_type == "Import":
+                print(f"     - Import: {', '.join(sym['modules'])}")
+            
+            elif sym_type == "ImportFrom":
+                print(f"     - From {sym['module']} import {', '.join(sym['imports'])}")
+            
+            else:
+                print(f"     - Unknown symbol: {sym}")
 
 class HelpCommand:
     """Command handler for the 'help' subcommand."""

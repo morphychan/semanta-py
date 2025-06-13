@@ -84,6 +84,11 @@ class SemantaCLI:
             help="Display top-level AST node types for each file"
         )
         analyze_parser.add_argument(
+            "--show-symbols",
+            action="store_true",
+            help="Display extracted symbols (functions, classes) for each file"
+        )
+        analyze_parser.add_argument(
             "--limit",
             type=int,
             default=None,
